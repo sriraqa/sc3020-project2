@@ -1,6 +1,8 @@
 #main file that invokes all the necessary procedures from these three files
 from preprocessing import connect_db, get_qep, get_aqps
 from annotation import generate_annotations
+from interface import launch_gui
+
 
 conn = connect_db(
     dbname="TPC-H",
@@ -9,6 +11,9 @@ conn = connect_db(
     host="localhost",
     port="5432"
 )
+
+if __name__ == "__main__":
+    launch_gui()
 
 sql = "SELECT * FROM customer C, orders O WHERE C.c_custkey = O.o_custkey"
 
