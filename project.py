@@ -1,6 +1,6 @@
 #main file that invokes all the necessary procedures from these three files
-from preprocessing import connect_db, get_qep, get_aqps, parse_plan_tree
-import json
+from preprocessing import connect_db, get_qep, get_aqps
+from annotation import generate_annotations
 
 conn = connect_db(
     dbname="TPC-H",
@@ -12,20 +12,20 @@ conn = connect_db(
 
 sql = "SELECT * FROM customer C, orders O WHERE C.c_custkey = O.o_custkey"
 
-qep = get_qep(conn, sql)
-print("=== QEP ===")
-print(json.dumps(qep, indent=2))
-
-# Get AQPs
+qep  = get_qep(conn, sql)
 aqps = get_aqps(conn, sql)
-print("\n=== AQP Costs ===")
-for name, plan in aqps.items():
-    cost = plan["Plan"]["Total Cost"]
-    print(f"  Without {name}: total cost = {cost}")
+result = generate_annotations(sql, qep, aqps)
 
-nodes = parse_plan_tree(qep["Plan"])
-print("\n=== Plan Nodes ===")
-for n in nodes:
-    print(f"  {n['type']} on {n['relation'] or 'N/A'} — cost: {n['total_cost']}")
+print("=== SCAN ANNOTATIONS ===")
+for table, note in result["scans"].items():
+    print(f"\n{note}")
+
+print("\n=== JOIN ANNOTATIONS ===")
+for note in result["joins"]:
+    print(f"\n{note}")
+
+print("\n=== OTHER ANNOTATIONS ===")
+for note in result["others"]:
+    print(f"\n{note}")
 
 conn.close()
