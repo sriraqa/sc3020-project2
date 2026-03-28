@@ -1,13 +1,19 @@
 #contains any code for reading inputs and any preprocessing necessary to make your algorithm work
+import os
 import psycopg2
 import json
 
 def connect_db(dbname="tpch", user="postgres", password="", host="localhost", port="5432"):
-    """Establish connection to PostgreSQL database."""
+    """Establish connection to PostgreSQL database.
+
+    If ``password`` is empty, the ``PGPASSWORD`` environment variable is used
+    (PostgreSQL/libpq convention).
+    """
+    pw = password or os.environ.get("PGPASSWORD", "")
     conn = psycopg2.connect(
         dbname=dbname,
         user=user,
-        password=password,
+        password=pw,
         host=host,
         port=port
     )

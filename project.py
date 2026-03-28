@@ -1,15 +1,17 @@
 #main file that invokes all the necessary procedures from these three files
+import os
+
 from preprocessing import connect_db, get_qep, get_aqps
 from annotation import generate_annotations
 from interface import launch_gui
 
 
 conn = connect_db(
-    dbname="TPC-H",
-    user="postgres",   
-    password="12345", 
-    host="localhost",
-    port="5432"
+    dbname=os.environ.get("PGDATABASE", "TPC-H"),
+    user=os.environ.get("PGUSER", "postgres"),
+    password="",  # uses PGPASSWORD env var when empty
+    host=os.environ.get("PGHOST", "localhost"),
+    port=os.environ.get("PGPORT", "5432"),
 )
 
 if __name__ == "__main__":

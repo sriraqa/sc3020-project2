@@ -1,4 +1,5 @@
 # interface.py
+import os
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
@@ -63,11 +64,11 @@ class ConnectionDialog(QDialog):
 
         layout = QFormLayout()
 
-        self.host_input     = QLineEdit("127.0.0.1")
-        self.port_input     = QLineEdit("5432")
-        self.dbname_input   = QLineEdit("tpch")
-        self.user_input     = QLineEdit("postgres")
-        self.password_input = QLineEdit()
+        self.host_input     = QLineEdit(os.environ.get("PGHOST", "127.0.0.1"))
+        self.port_input     = QLineEdit(os.environ.get("PGPORT", "5432"))
+        self.dbname_input   = QLineEdit(os.environ.get("PGDATABASE", "tpch"))
+        self.user_input     = QLineEdit(os.environ.get("PGUSER", "postgres"))
+        self.password_input = QLineEdit(os.environ.get("PGPASSWORD", ""))
         self.password_input.setEchoMode(QLineEdit.Password)
 
         layout.addRow("Host:",     self.host_input)
