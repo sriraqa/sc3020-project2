@@ -61,24 +61,12 @@ def _format_annotations(sql, result):
 def launch_gui():
     state = {"conn": None}
 
-    ui.dark_mode().enable()
     ui.page_title("SC3020 - Query Plan Annotator")
 
     with ui.column().classes("w-full p-6 gap-4"):
         ui.label("SC3020 - Query Plan Annotator").classes("text-2xl font-bold")
 
-        with ui.card().classes("w-full"):
-            ui.label("Database Connection").classes("text-lg font-semibold")
-            with ui.row().classes("w-full gap-2"):
-                host_input = ui.input("Host", value=os.environ.get("PGHOST", "127.0.0.1")).classes("w-40")
-                port_input = ui.input("Port", value=os.environ.get("PGPORT", "5432")).classes("w-32")
-                db_input = ui.input("Database", value=os.environ.get("PGDATABASE", "tpch")).classes("w-40")
-                user_input = ui.input("Username", value=os.environ.get("PGUSER", "postgres")).classes("w-40")
-                password_input = ui.input("Password", password=True, password_toggle_button=True, value=os.environ.get("PGPASSWORD", "")).classes("w-48")
-
-            conn_status = ui.label("Not connected").classes("text-grey-5")
-
-            def connect_action():
+        def connect_action():
                 if state["conn"]:
                     try:
                         state["conn"].close()
@@ -94,15 +82,27 @@ def launch_gui():
                         host=host_input.value,
                         port=port_input.value,
                     )
-                    conn_status.text = f"Connected to '{db_input.value}' as {user_input.value}"
+                    conn_status.text = f"✔️ Connected to '{db_input.value}' as {user_input.value}"
                     conn_status.classes(remove="text-grey-5 text-negative", add="text-positive")
                     ui.notify("Connected to database", type="positive")
                 except Exception as e:
-                    conn_status.text = "Connection failed"
+                    conn_status.text = "✖️ Connection failed"
                     conn_status.classes(remove="text-grey-5 text-positive", add="text-negative")
                     ui.notify(f"Connection failed: {e}", type="negative")
 
-            ui.button("Connect to DB", on_click=connect_action).props("color=primary")
+
+        with ui.card().classes("w-full"):
+            ui.label("Database Connection").classes("text-lg font-semibold")
+            with ui.row().classes("w-full gap-2"):
+                host_input = ui.input("Host", value=os.environ.get("PGHOST", "127.0.0.1")).classes("w-40")
+                port_input = ui.input("Port", value=os.environ.get("PGPORT", "5432")).classes("w-32")
+                db_input = ui.input("Database", value=os.environ.get("PGDATABASE", "tpch")).classes("w-40")
+                user_input = ui.input("Username", value=os.environ.get("PGUSER", "postgres")).classes("w-40")
+                password_input = ui.input("Password", password=True, password_toggle_button=True, value=os.environ.get("PGPASSWORD", "")).classes("w-48")
+
+            with ui.row().classes("items-center gap-3 mt-2"):
+                ui.button("Connect to DB", on_click=connect_action).props("color=primary")
+                conn_status = ui.label("Not connected").classes("text-grey-5")
 
         def annotate_action():
             if not state["conn"]:
@@ -127,7 +127,7 @@ def launch_gui():
                 ui.notify(f"Error while annotating query: {e}", type="negative")
 
         with ui.row().classes("w-full gap-4 items-stretch"):
-            with ui.card().classes("w-1/2"):
+            with ui.card().classes("w-full"):
                 ui.label("SQL Query").classes("text-lg font-semibold")
                 sql_input = ui.textarea(
                     label="SQL",
@@ -136,14 +136,14 @@ def launch_gui():
 
                 ui.button("Annotate Query", on_click=annotate_action).props("color=primary size=md")
 
+            with ui.card().classes("w-full"):
                 ui.label("Annotated Output").classes("text-lg font-semibold mt-2")
-                annotated_output = ui.code("").classes("w-full max-h-96 overflow-auto")
+                annotated_output = ui.code("").classes("w-full min-h-24 overflow-auto")
 
-            with ui.card().classes("w-1/2"):
                 ui.label("Query Execution Plan (Tree View)").classes("text-lg font-semibold")
-                qep_tree_output = ui.code("").classes("w-full max-h-72 overflow-auto")
+                qep_tree_output = ui.code("").classes("w-full min-h-24 overflow-auto")
 
                 ui.label("Raw QEP (JSON)").classes("text-lg font-semibold mt-2")
-                qep_json_output = ui.code("").classes("w-full max-h-72 overflow-auto")
+                qep_json_output = ui.code("").classes("w-full min-h-24 overflow-auto")
 
     ui.run(title="SC3020 - Query Plan Annotator", reload=False)
