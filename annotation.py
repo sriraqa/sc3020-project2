@@ -1,16 +1,17 @@
-#contains code for generating the annotations
-# annotation.py
+# contains code for generating the annotations
 import sqlparse
 from sqlparse.sql import IdentifierList, Identifier, Where, Comparison
 from sqlparse.tokens import Keyword, DML, Punctuation
-import re
+import re #regular expessions library
 
 def extract_tables(sql_query):
     """
+    Input: raw SQL query string
     Extract table names and their aliases from the SQL query.
     Returns a dict of {alias: table_name}
     """
     tables = {}
+    # parse the query into structured object 
     parsed = sqlparse.parse(sql_query)[0]
     tokens = [t for t in parsed.flatten()]
     
@@ -19,7 +20,7 @@ def extract_tables(sql_query):
     while i < len(tokens):
         val = tokens[i].value.upper()
         if val in ('FROM', 'JOIN'):
-            # next meaningful token is the table name
+            # table name will always follow 'from' or 'join'
             j = i + 1
             while j < len(tokens) and tokens[j].value.strip() in ('', ','):
                 j += 1
@@ -37,16 +38,15 @@ def extract_tables(sql_query):
                     alias = tokens[k].value.strip()
                     tables[alias] = table_name
                     tables[table_name] = table_name  # also map name to itself
-                else:
+                else: # no alias
                     tables[table_name] = table_name
         i += 1
     return tables
 
-
 def extract_conditions(sql_query):
     """
-    Extract WHERE clause conditions from the SQL query.
-    Returns a list of condition strings.
+    Extract WHERE clause conditions from the SQL query
+    Returns a list of condition strings
     """
     conditions = []
     # Find WHERE clause using regex
@@ -54,7 +54,6 @@ def extract_conditions(sql_query):
                             sql_query, re.IGNORECASE | re.DOTALL)
     if where_match:
         where_clause = where_match.group(1).strip()
-        # Split by AND/OR
         parts = re.split(r'\bAND\b|\bOR\b', where_clause, flags=re.IGNORECASE)
         for part in parts:
             conditions.append(part.strip())
@@ -62,13 +61,13 @@ def extract_conditions(sql_query):
 
 
 def get_node_cost(plan_node):
-    """Extract total cost from a plan node."""
+    """Extract total cost from a plan node"""
     return plan_node.get("Total Cost", 0)
 
 
 def find_nodes_by_type(plan_node, target_types, found=None):
     """
-    Recursively find all nodes matching target types in the plan tree.
+    Recursively find all nodes matching target types in the plan tree
     target_types: list of strings e.g. ["Hash Join", "Seq Scan"]
     """
     if found is None:
