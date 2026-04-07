@@ -104,24 +104,6 @@ def launch_gui():
 
             ui.button("Connect to DB", on_click=connect_action).props("color=primary")
 
-        with ui.row().classes("w-full gap-4 items-stretch"):
-            with ui.card().classes("w-1/2"):
-                ui.label("SQL Query").classes("text-lg font-semibold")
-                sql_input = ui.textarea(
-                    label="SQL",
-                    placeholder="SELECT * FROM customer C, orders O WHERE C.c_custkey = O.o_custkey",
-                ).props("autogrow outlined").classes("w-full")
-
-                ui.label("Annotated Output").classes("text-lg font-semibold mt-2")
-                annotated_output = ui.code("").classes("w-full max-h-96 overflow-auto")
-
-            with ui.card().classes("w-1/2"):
-                ui.label("Query Execution Plan (Tree View)").classes("text-lg font-semibold")
-                qep_tree_output = ui.code("").classes("w-full max-h-72 overflow-auto")
-
-                ui.label("Raw QEP (JSON)").classes("text-lg font-semibold mt-2")
-                qep_json_output = ui.code("").classes("w-full max-h-72 overflow-auto")
-
         def annotate_action():
             if not state["conn"]:
                 ui.notify("Please connect to a database first", type="warning")
@@ -144,6 +126,24 @@ def launch_gui():
             except Exception as e:
                 ui.notify(f"Error while annotating query: {e}", type="negative")
 
-        ui.button("Annotate Query", on_click=annotate_action).props("color=primary size=lg")
+        with ui.row().classes("w-full gap-4 items-stretch"):
+            with ui.card().classes("w-1/2"):
+                ui.label("SQL Query").classes("text-lg font-semibold")
+                sql_input = ui.textarea(
+                    label="SQL",
+                    placeholder="SELECT * FROM customer C, orders O WHERE C.c_custkey = O.o_custkey",
+                ).props("autogrow outlined").classes("w-full")
+
+                ui.button("Annotate Query", on_click=annotate_action).props("color=primary size=md")
+
+                ui.label("Annotated Output").classes("text-lg font-semibold mt-2")
+                annotated_output = ui.code("").classes("w-full max-h-96 overflow-auto")
+
+            with ui.card().classes("w-1/2"):
+                ui.label("Query Execution Plan (Tree View)").classes("text-lg font-semibold")
+                qep_tree_output = ui.code("").classes("w-full max-h-72 overflow-auto")
+
+                ui.label("Raw QEP (JSON)").classes("text-lg font-semibold mt-2")
+                qep_json_output = ui.code("").classes("w-full max-h-72 overflow-auto")
 
     ui.run(title="SC3020 - Query Plan Annotator", reload=False)
