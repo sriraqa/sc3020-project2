@@ -1,6 +1,7 @@
 ### To Run the Code
 
-1. Create virtual environment for python 
+1. Create virtual environment for python
+
 In terminal, paste this:
 ```
 python3 -m venv venv
