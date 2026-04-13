@@ -2,7 +2,7 @@
 import sqlparse
 from sqlparse.sql import IdentifierList, Identifier, Where, Comparison
 from sqlparse.tokens import Keyword, DML, Punctuation
-import re #regular expessions library
+import re # regular expressions library
 
 def extract_tables(sql_query):
     """
@@ -59,12 +59,6 @@ def extract_conditions(sql_query):
             conditions.append(part.strip())
     return conditions
 
-
-def get_node_cost(plan_node):
-    """Extract total cost from a plan node"""
-    return plan_node.get("Total Cost", 0)
-
-
 def find_nodes_by_type(plan_node, target_types, found=None):
     """
     Recursively find all nodes matching target types in the plan tree
@@ -76,6 +70,7 @@ def find_nodes_by_type(plan_node, target_types, found=None):
         found.append(plan_node)
     for child in plan_node.get("Plans", []):
         find_nodes_by_type(child, target_types, found)
+    print(f"find_nodes_by_type {found}")
     return found
 
 
@@ -97,11 +92,10 @@ def annotate_scans(plan_node, tables, aqps):
             continue
 
         if node_type == "Seq Scan":
-            # Check if a cheaper index scan was available
             annotation = (
                 f"[{relation}] accessed using Sequential Scan (cost: {cost}). "
                 f"All rows are read one by one because no usable index exists on "
-                f"the filtered/joined column(s)."
+                f"the filtered column(s)."
             )
         elif node_type in ("Index Scan", "Index Only Scan"):
             index_name = node.get("Index Name", "an index")
@@ -114,10 +108,11 @@ def annotate_scans(plan_node, tables, aqps):
                 f"[{relation}] accessed using Bitmap Heap Scan (cost: {cost}). "
                 f"A bitmap of matching rows is built first, then fetched from the table."
             )
-        else:
+        else: # generic fallback
             annotation = f"[{relation}] accessed using {node_type} (cost: {cost})."
 
         annotations[relation] = annotation
+        print(f"annotate_scans {annotations}")
 
     return annotations
 
@@ -134,9 +129,10 @@ def annotate_joins(plan_node, aqps):
     if not join_nodes:
         return annotations
 
+    # get total cost of the QEP for comparison
     qep_cost = plan_node.get("Total Cost", 0)
 
-    # Get AQP costs for comparison
+    # get AQP costs for comparison
     aqp_costs = {}
     for disabled_op, aqp_plan in aqps.items():
         aqp_cost = aqp_plan["Plan"].get("Total Cost", 0)
@@ -150,7 +146,6 @@ def annotate_joins(plan_node, aqps):
                      "N/A")
         cost = node.get("Total Cost")
 
-        # Build cost comparison string
         comparisons = []
         if join_type == "Hash Join" and "hashjoin" in aqp_costs:
             alt_cost = aqp_costs["hashjoin"]

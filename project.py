@@ -1,4 +1,4 @@
-#main file that invokes all the necessary procedures from these three files
+# main file that invokes all the necessary procedures from these three files
 
 from interface import launch_gui
 
